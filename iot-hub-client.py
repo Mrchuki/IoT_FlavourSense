@@ -1,27 +1,27 @@
+# SCRIPT PARA QUE LA RASPBERRYPI MANDE LAS MEDIDAS A AZURE. Tenemos la selección de productos y la detección de mucho ruido con el joystick, la temperatura
+# y los niveveles de luz simulados con el sensor de humedad (solo 2 rangos: poca y mucha luz).
+
 import json
-import random
 import sys
 import time
-
 from sense_hat import SenseHat
 from azure.iot.device import IoTHubDeviceClient, Message
 
-# Azure IoT Hub Connection String (provided as a script argument)
+# Azure IoT Hub Connection String
 AUX_CONNECTION_STRING = sys.argv[1]
 
 # Initialize SenseHat
 sense = SenseHat()
 
-# Thresholds for joystick button actions
-JOYSTICK_ACTIONS = {
-    "up": "Red Wine",
-    "down": "White Wine",
-    "left": "Rose Wine",
-    "middle": "Stop music"
-}
-
 # SENSOR DATA STRUCTURE
 sensor_data = {}
+
+# MAP JOYSTICK INPUT TO WINE TYPE
+WINE_SELECTION = {
+    "up": "Red Wine",
+    "down": "White Wine",
+    "right": "Rosé Wine"
+}
 
 # METHODS TO GET SENSOR VALUES
 def get_sensor_temperature():
@@ -29,21 +29,24 @@ def get_sensor_temperature():
     return round(temperature, 2)
 
 def get_sensor_light():
-    # Simulated light sensor (as SenseHat doesn't have one natively)
-    # Replace with actual photodiode code if available
-    light_level = random.randint(0, 100)
-    return light_level
+    # Simulate light levels using humidity sensor with two ranges
+    humidity = sense.get_humidity()
+    return "Low Light" if humidity < 50 else "High Light"
 
-def get_joystick_action():
+def get_sensor_joystick():
+    # Interpret joystick direction
     for event in sense.stick.get_events():
-        if event.action == "pressed" and event.direction in JOYSTICK_ACTIONS:
-            return JOYSTICK_ACTIONS[event.direction]
-    return "No Action"
+        if event.action == "pressed":
+            if event.direction in WINE_SELECTION:
+                return WINE_SELECTION[event.direction]
+            elif event.direction == "left":
+                return "Noise Detected"
+    return "No Selection"
 
 # VALIDATE CONNECTION STRING
 def aux_validate_connection_string():
     if not AUX_CONNECTION_STRING.startswith('HostName='):
-        print("ERROR  - YOUR IoT HUB CONNECTION STRING IS NOT VALID")
+        print("ERROR - YOUR IoT HUB CONNECTION STRING IS NOT VALID")
         print("FORMAT - HostName=your_iot_hub_name.azure-devices.net;DeviceId=your_device_name;SharedAccessKey=your_shared_access_key")
         sys.exit()
 
@@ -62,41 +65,39 @@ def iothub_client_telemetry_sample_run():
         print("Press Ctrl-C to exit")
 
         while True:
-            # Collect sensor data
+            # COLLECTING SENSOR VALUES
             temperature = get_sensor_temperature()
-            light_level = get_sensor_light()
-            product_selection = get_joystick_action()
+            light = get_sensor_light()
+            joystick_action = get_sensor_joystick()
 
-            # Store data in structure
+            # STORING SENSOR VALUES IN DATA STRUCTURE
             sensor_data['temperature'] = temperature
-            sensor_data['light'] = light_level
-            sensor_data['product_selection'] = product_selection
+            sensor_data['light'] = light
+            sensor_data['joystick_action'] = joystick_action
 
-            # Convert to JSON
+            # TRANSFORMING IT TO JSON
             json_sensor_data = json.dumps(sensor_data)
 
-            # Create Azure IoT Message
+            # CREATING AN AZURE IOT MESSAGE OBJECT
             azure_iot_message = Message(json_sensor_data)
 
-            # Add custom property if temperature exceeds threshold
-            azure_iot_message.custom_properties["temperature_alert"] = "true" if temperature > 30 else "false"
+            # ADDING A CUSTOM PROPERTY, which can trigger actions in Azure, such as sending alerts or logging the event. Lo dejo por si nos interesa.
+            azure_iot_message.custom_properties["noise_alert"] = "true" if joystick_action == "Noise Detected" else "false"
 
-            # Set message encoding
+            # SETTING PROPER MESSAGE ENCODING
             azure_iot_message.content_encoding = 'utf-8'
             azure_iot_message.content_type = 'application/json'
 
-            # Send the message
+            # SENDING THE MESSAGE
             print(f"Sending message: {azure_iot_message}")
             client.send_message(azure_iot_message)
             print("Message successfully sent")
 
-            # Wait for a second
+            # SLEEPING FOR A SECOND BEFORE RESTARTING
             time.sleep(1)
 
     except KeyboardInterrupt:
         print("IoTHubClient sample stopped")
-    finally:
-        sense.clear()
 
 if __name__ == '__main__':
     iothub_client_telemetry_sample_run()
