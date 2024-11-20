@@ -1,0 +1,11 @@
+# PRIMER PASO: Instalar dependencias necesarias para que Raspebrry pueda conectar con Azure. Clonar nuestro repo. 
+
+sudo apt-get update -y
+sudo apt install python3-pip -y
+pip3 install azure-iot-device
+git clone https://github.com/iiot-cloud-icai/Azure_IoT_Lab.git
+https://github.com/Mrchuki/IoT_FlavourSense.git
+
+# SEGUNDO PASO: Mandar los datos del script de iot-hub-client al device que hemos creado en Azure.
+
+python3 IoT_FlavourSense/iot-hub-client.py "PRIMARY CONNECTION STRING DE NUESTRO DEVICE"
