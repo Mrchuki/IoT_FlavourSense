@@ -5,3 +5,8 @@ In this project we want to establish a bidirectional connection between a Raspbe
 We can see the intended architecture below:
 
 ![Lab diagram](images/Lab.png "Header Image")
+
+## Credits 
+
+This project includes code from [Original Repository](https://github.com/iiot-cloud-icai/Azure_IoT_Lab), developed by [SeryioGonzalez](https://github.com/SeryioGonzalez).
+
