@@ -1,0 +1,39 @@
+# CUANDO LA TEMPERATURA SEA MUY ALTA & WHITE WINE, ENCENDEMOS EL VENTILADOR Y UN LED BLANCO
+
+{
+  "Led_blanco": "on",
+  "Ventilador": "on"
+}
+
+# CUANDO LA TEMPERATURA SEA MUY BAJA & RED WINE, ENCENDEMOS EL VENTILAR Y RED LOJO (AIRE CALIENTE)
+
+{
+  "Led_rojo": "on",
+  "Ventilador": "on"
+}
+
+# CUANDO LA TEMPERATURA SEA INTERMEDIA & ROSÉ WINE, ENCENDEMOS EL VENTILADOR Y UN LED ROSA QUE INDICA TEMPERATURA IDEAL
+
+{
+  "Led_rosa": "on",
+  "Ventilador": "on"
+}
+
+# MÚSICA PARA WHITE WINE: "What a Wonderful World" - Louis Armstrong
+
+{
+  "music_white": "on"
+}
+
+# MÚSICA PARA RED WINE: "At Last" - Etta James
+
+{
+  "music_red": "on"
+}
+
+# MÚSICA PARA ROSE WINE: "Blinding Lights" - The Weeknd
+
+{
+  "music_rose": "on"
+}
+
