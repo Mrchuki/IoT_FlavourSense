@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import time
 
 # Configuración del broker
-broker = "localhost"  # Usa "localhost" si Mosquitto está en la misma Raspberry
+broker = "broker.hivemq.com"  # Usa "localhost" si Mosquitto está en la misma Raspberry
 port = 1883
 topic = "test"  # Tema al que publicaremos
 
