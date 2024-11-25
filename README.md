@@ -41,4 +41,3 @@ This project is a collaborative effort by a dedicated team of innovators:
 
 ---
 
-D
