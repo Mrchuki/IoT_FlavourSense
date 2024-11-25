@@ -34,9 +34,9 @@ This project includes code from [Original Repository](https://github.com/iiot-cl
 ### **Contributors**
 This project is a collaborative effort by a dedicated team of innovators:  
 
-- **Sofia Amores Parra** - [@sofiaamores] (https://www.github.com/sofiaamores)
-- **Claudia Coduras Gracia** - [@claucoduras] (https://www.github.com/claucoduras)
-- **Iván Júdez Ráfales** - [@Mrchuki] (https://www.github.com/Mrchuki)
+- **Sofia Amores Parra** - @sofiaamores (https://www.github.com/sofiaamores)
+- **Claudia Coduras Gracia** - @claucoduras (https://www.github.com/claucoduras)
+- **Iván Júdez Ráfales** - @Mrchuki (https://www.github.com/Mrchuki)
 - **[Contributor 5 Name** -
 
 ---
