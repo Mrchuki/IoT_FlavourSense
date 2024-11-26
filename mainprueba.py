@@ -108,7 +108,7 @@ def mqtt_connect_with_retry():
 # Métodos para controlar el Arduino vía MQTT
 def send_to_arduino(message):
     if mqtt_connected:
-        result = mqtt_client.publish(MQTT_TOPIC, message, qos=1)
+        result = mqtt_client.publish(MQTT_TOPIC, message, qos=1, retain=True)
         if result.rc == 0:
             print(f"Mensaje enviado a Arduino: {message}")
         else:
