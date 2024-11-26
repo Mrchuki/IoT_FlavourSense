@@ -112,6 +112,7 @@ def handle_command(client):
 
         if command == "Fan ON":
             print("Command received: Fan ON")
+            #subprocess.run(["python3", "raspberry-to-arduino.py --ON"])
             subprocess.run(["python3", "raspberry-to-arduino.py"])
 # aquñi hay q ver si le metemos otro script para off o que
         elif command == "Fan OFF":
