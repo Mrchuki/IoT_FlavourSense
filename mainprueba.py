@@ -52,7 +52,7 @@ MQTT_TOPIC = "test-arduino"
 
 # Variables de control para MQTT
 mqtt_client = mqtt.Client("RaspberryPiClient")
-mqtt_connected = threading.Event()
+mqtt_connected = False
 
 # Initialize SenseHat
 sense = SenseHat()
@@ -72,29 +72,51 @@ WINE_SELECTION = {
 
 # MQTT Callbacks
 def on_connect(client, userdata, flags, rc):
+    global mqtt_connected
     if rc == 0:
         print("Conectado exitosamente al broker MQTT.")
-        mqtt_connected.set()
+        mqtt_connected = True
     else:
         print(f"Error al conectar al broker MQTT: {rc}")
+        mqtt_connected = False
 
 def on_disconnect(client, userdata, rc):
+    global mqtt_connected
     print("Desconectado del broker MQTT.")
-    mqtt_connected.clear()
+    mqtt_connected = False
+
+def on_publish(client, userdata, mid):
+    print(f"Mensaje publicado exitosamente. ID del mensaje: {mid}")
 
 mqtt_client.on_connect = on_connect
 mqtt_client.on_disconnect = on_disconnect
+mqtt_client.on_publish = on_publish
+
+# Reconexión periódica al broker MQTT
+def mqtt_connect_with_retry():
+    global mqtt_connected
+    while not mqtt_connected:
+        try:
+            print("Intentando conectar al broker MQTT...")
+            mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
+            mqtt_client.loop_start()
+            time.sleep(2)  # Espera antes de verificar el estado
+        except Exception as e:
+            print(f"Error al conectar al broker MQTT: {e}")
+            time.sleep(5)  # Reintentar tras un breve retraso
 
 # Métodos para controlar el Arduino vía MQTT
 def send_to_arduino(message):
-    if mqtt_connected.is_set():
+    if mqtt_connected:
         result = mqtt_client.publish(MQTT_TOPIC, message, qos=1)
         if result.rc == 0:
             print(f"Mensaje enviado a Arduino: {message}")
         else:
             print(f"Error al enviar mensaje a Arduino: {result.rc}")
+    else:
+        print("No conectado al broker MQTT. No se pudo enviar el mensaje.")
 
-# METHODS TO GET SENSOR VALUES
+# Métodos para obtener valores del Sense HAT
 def get_sensor_temperature():
     return round(sense.get_temperature(), 2)
 
@@ -197,8 +219,7 @@ def iothub_client_telemetry_sample_run():
         client = IoTHubDeviceClient.create_from_connection_string(AUX_CONNECTION_STRING)
 
         print("Conectando al broker MQTT...")
-        mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
-        mqtt_client.loop_start()
+        mqtt_connect_with_retry()
 
         print("IoT Hub Sensor Telemetry and Command Listener")
         print("Press Ctrl-C to exit")
@@ -238,6 +259,3 @@ def iothub_client_telemetry_sample_run():
 
 if __name__ == '__main__':
     iothub_client_telemetry_sample_run()
-
-
-
