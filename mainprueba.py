@@ -38,11 +38,21 @@ import sys
 import time
 from sense_hat import SenseHat
 from azure.iot.device import IoTHubDeviceClient, Message
+import threading
+import paho.mqtt.client as mqtt  # Para comunicación con Arduino
 import RPi.GPIO as GPIO
-import subprocess  # Para llamar al script auxiliar
 
 # Azure IoT Hub Connection String
 AUX_CONNECTION_STRING = "HostName=icaiiotflavoursense.azure-devices.net;DeviceId=SenseHat;SharedAccessKey=1zTmZeEfAeDwV7P7gf2ERKkiG1F/2mG79ou5RM8BYlA="
+
+# MQTT Broker Configuración
+MQTT_BROKER = "broker.hivemq.com"
+MQTT_PORT = 1883
+MQTT_TOPIC = "test-arduino"
+
+# Variables de control para MQTT
+mqtt_client = mqtt.Client("RaspberryPiClient")
+mqtt_connected = threading.Event()
 
 # Initialize SenseHat
 sense = SenseHat()
@@ -59,6 +69,30 @@ WINE_SELECTION = {
     "down": "White Wine",
     "right": "Rosé Wine",
 }
+
+# MQTT Callbacks
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Conectado exitosamente al broker MQTT.")
+        mqtt_connected.set()
+    else:
+        print(f"Error al conectar al broker MQTT: {rc}")
+
+def on_disconnect(client, userdata, rc):
+    print("Desconectado del broker MQTT.")
+    mqtt_connected.clear()
+
+mqtt_client.on_connect = on_connect
+mqtt_client.on_disconnect = on_disconnect
+
+# Métodos para controlar el Arduino vía MQTT
+def send_to_arduino(message):
+    if mqtt_connected.is_set():
+        result = mqtt_client.publish(MQTT_TOPIC, message, qos=1)
+        if result.rc == 0:
+            print(f"Mensaje enviado a Arduino: {message}")
+        else:
+            print(f"Error al enviar mensaje a Arduino: {result.rc}")
 
 # METHODS TO GET SENSOR VALUES
 def get_sensor_temperature():
@@ -84,7 +118,6 @@ def get_note_matrix(note, intensity=1):
     pink = [int(255 * intensity), int(182 * intensity), int(193 * intensity)]
     white = [int(255 * intensity), int(255 * intensity), int(255 * intensity)]
 
-    # Matrices de las notas
     corchea = [
         black, black, black, red, red, black, black, black,
         black, black, black, red, red, black, black, black,
@@ -118,7 +151,6 @@ def get_note_matrix(note, intensity=1):
         black, black, black, black, black, black, black, black,
     ]
 
-    # Selección de matriz según la nota
     if note == "Red Wine":
         return corchea
     elif note == "Rosé Wine":
@@ -133,32 +165,20 @@ def display_note(note, intensity=1):
     matrix = get_note_matrix(note, intensity)
     sense.set_pixels(matrix)
 
-# VALIDATE CONNECTION STRING
-def aux_validate_connection_string():
-    if not AUX_CONNECTION_STRING.startswith('HostName='):
-        print("ERROR - YOUR IoT HUB CONNECTION STRING IS NOT VALID")
-        sys.exit()
-
-# INITIALIZE CLIENT
-def aux_iothub_client_init():
-    client = IoTHubDeviceClient.create_from_connection_string(AUX_CONNECTION_STRING)
-    return client
-
-# HANDLE INCOMING COMMANDS
+# HANDLE INCOMING COMMANDS FROM AZURE
 def handle_command(client):
     while True:
-        message = client.receive_message()  # Blocking call
+        message = client.receive_message()
         payload = json.loads(message.data)
         command = payload.get("command", None)
 
         if command == "Fan ON":
             print("Command received: Fan ON")
-            #subprocess.run(["python3", "raspberry-to-arduino.py --ON"])
-            subprocess.run(["python3", "raspberry-to-arduino.py"])
-# aquñi hay q ver si le metemos otro script para off o que
+            send_to_arduino("ON")
+
         elif command == "Fan OFF":
             print("Command received: Fan OFF")
-            subprocess.run(["python3", "raspberry-to-arduino.py"])
+            send_to_arduino("OFF")
 
         elif command == "Increase Brightness":
             print("Command received: Increase Brightness")
@@ -174,51 +194,50 @@ def handle_command(client):
 # MAIN SCRIPT
 def iothub_client_telemetry_sample_run():
     try:
-        aux_validate_connection_string()
-        client = aux_iothub_client_init()
+        client = IoTHubDeviceClient.create_from_connection_string(AUX_CONNECTION_STRING)
+
+        print("Conectando al broker MQTT...")
+        mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+        mqtt_client.loop_start()
 
         print("IoT Hub Sensor Telemetry and Command Listener")
         print("Press Ctrl-C to exit")
 
-        # Start a separate thread to handle incoming messages
-        import threading
         threading.Thread(target=handle_command, args=(client,), daemon=True).start()
 
         while True:
-            # COLLECTING SENSOR VALUES
             temperature = get_sensor_temperature()
             light = get_sensor_light()
             joystick_action = get_sensor_joystick()
 
-            # Update displayed note
             if joystick_action in WINE_SELECTION.values():
                 display_note(joystick_action)
 
-            # STORING SENSOR VALUES IN DATA STRUCTURE
             sensor_data.update({
                 'temperature': temperature,
                 'light': light,
                 'joystick_action': joystick_action,
             })
 
-            # SENDING DATA TO AZURE
             json_sensor_data = json.dumps(sensor_data)
             azure_iot_message = Message(json_sensor_data)
             azure_iot_message.content_encoding = 'utf-8'
             azure_iot_message.content_type = 'application/json'
-            print(f"Sending message: {azure_iot_message}")
             client.send_message(azure_iot_message)
-            print("Message successfully sent")
+            print(f"Message sent: {azure_iot_message}")
 
             time.sleep(1)
 
     except KeyboardInterrupt:
         print("IoTHubClient sample stopped")
     finally:
+        mqtt_client.loop_stop()
+        mqtt_client.disconnect()
         GPIO.cleanup()
         sense.clear()
 
 if __name__ == '__main__':
     iothub_client_telemetry_sample_run()
+
 
 
