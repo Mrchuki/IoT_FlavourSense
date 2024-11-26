@@ -77,20 +77,61 @@ def get_sensor_joystick():
                 return "Noise Detected"
     return "No Selection"
 
+# MATRICES DE NOTAS MUSICALES
+def get_note_matrix(note, intensity=1):
+    black = [0, 0, 0]
+    red = [int(139 * intensity), 0, 0]
+    pink = [int(255 * intensity), int(182 * intensity), int(193 * intensity)]
+    white = [int(255 * intensity), int(255 * intensity), int(255 * intensity)]
+
+    # Matrices de las notas
+    corchea = [
+        black, black, black, red, red, black, black, black,
+        black, black, black, red, red, black, black, black,
+        black, black, red, red, red, red, black, black,
+        black, black, red, red, red, red, black, black,
+        black, black, black, red, red, black, black, black,
+        black, black, black, red, red, black, black, black,
+        black, black, black, red, red, black, black, black,
+        black, black, black, black, black, black, black, black,
+    ]
+
+    semicorchea = [
+        black, black, pink, pink, black, black, black, black,
+        black, black, pink, pink, black, black, black, black,
+        black, pink, pink, pink, pink, black, black, black,
+        black, pink, pink, pink, pink, black, black, black,
+        black, black, pink, pink, pink, pink, black, black,
+        black, black, pink, pink, pink, pink, black, black,
+        black, black, black, pink, pink, black, black, black,
+        black, black, black, black, black, black, black, black,
+    ]
+
+    blanca = [
+        black, black, white, white, white, white, black, black,
+        black, white, white, black, black, white, white, black,
+        black, white, black, black, black, black, white, black,
+        black, white, black, black, black, black, white, black,
+        black, white, black, black, black, black, white, black,
+        black, white, white, black, black, white, white, black,
+        black, black, white, white, white, white, black, black,
+        black, black, black, black, black, black, black, black,
+    ]
+
+    # Selección de matriz según la nota
+    if note == "Red Wine":
+        return corchea
+    elif note == "Rosé Wine":
+        return semicorchea
+    elif note == "White Wine":
+        return blanca
+    else:
+        return [black] * 64
+
 # DISPLAY NOTES ON LED MATRIX
 def display_note(note, intensity=1):
-    colors = {
-        "Red Wine": [139 * intensity, 0, 0],
-        "Rosé Wine": [255 * intensity, 182 * intensity, 193 * intensity],
-        "White Wine": [255 * intensity, 255 * intensity, 255 * intensity],
-    }
-    if note in colors:
-        color = colors[note]
-        matrix = [
-            color if (x + y) % 2 == 0 else [0, 0, 0]
-            for x in range(8) for y in range(8)
-        ]
-        sense.set_pixels(matrix)
+    matrix = get_note_matrix(note, intensity)
+    sense.set_pixels(matrix)
 
 # VALIDATE CONNECTION STRING
 def aux_validate_connection_string():
