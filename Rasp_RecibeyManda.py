@@ -42,7 +42,7 @@ import RPi.GPIO as GPIO
 import subprocess  # Para llamar al script auxiliar
 
 # Azure IoT Hub Connection String
-AUX_CONNECTION_STRING = sys.argv[1]
+AUX_CONNECTION_STRING = "HostName=icaiiotflavoursense.azure-devices.net;DeviceId=SenseHat;SharedAccessKey=1zTmZeEfAeDwV7P7gf2ERKkiG1F/2mG79ou5RM8BYlA="
 
 # Initialize SenseHat
 sense = SenseHat()
