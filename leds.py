@@ -7,7 +7,7 @@ sense = SenseHat()
 # Colores
 black = [0, 0, 0]
 red = [255, 0, 0]
-pink = [255, 105, 180]
+pink = [200, 85, 160]
 white = [255, 255, 255]
 
 # MAP JOYSTICK INPUT TO WINE TYPE
