@@ -283,8 +283,8 @@ def iothub_client_telemetry_sample_run():
             light_status = get_sensor_light()
             joystick = get_sensor_joystick()
 
-            if joystick_action in WINE_SELECTION.values():
-                display_note(joystick_action)
+            if joystick in WINE_SELECTION.values():
+                display_note(joystick)
               
             temperature.set(f"{temp}°C")
             light.set(light_status)
