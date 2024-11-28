@@ -312,4 +312,8 @@ def iothub_client_telemetry_sample_run():
         sense.clear()
 
 if __name__ == '__main__':
+   # Iniciar la interfaz gráfica
+    start_interface_thread()
+   
+   # Fujo del programa
     iothub_client_telemetry_sample_run()
