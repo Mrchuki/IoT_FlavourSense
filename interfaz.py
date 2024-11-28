@@ -126,9 +126,11 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Conectado exitosamente al broker MQTT.")
         mqtt_connected = True
+        mqtt_status.set("Connected")
     else:
         print(f"Error al conectar al broker MQTT: {rc}")
         mqtt_connected = False
+        mqtt_status.set("Disconnected")
 
 def on_disconnect(client, userdata, rc):
     global mqtt_connected
@@ -310,6 +312,7 @@ def iothub_client_telemetry_sample_run():
         mqtt_client.disconnect()
         GPIO.cleanup()
         sense.clear()
+        root.destroy()
 
 if __name__ == '__main__':
    # Iniciar la interfaz gráfica
