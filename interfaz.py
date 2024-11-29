@@ -77,15 +77,22 @@ WINE_SELECTION = {
     "right": "Rosé Wine",
 }
 
+
 # Función para crear la interfaz gráfica
 def create_interface():
     import tkinter as tk
-    from tkinter import Label, Canvas
+    from tkinter import Label, Canvas, StringVar
 
     root = tk.Tk()
     root.title("FlavourSense")
     root.geometry("400x500")
     root.configure(bg="#fff5e6")  # Fondo de color crema
+
+    # Variables necesarias para la interfaz
+    temperature = StringVar(value="N/A")
+    light = StringVar(value="N/A")
+    joystick_action = StringVar(value="No Selection")
+    mqtt_status = StringVar(value="Disconnected")
 
     # Encabezado
     header = Label(root, text="FlavourSense", font=("Serif", 24, "bold"), fg="#800020", bg="#fff5e6")
@@ -99,26 +106,37 @@ def create_interface():
 
     # Sección de temperatura
     Label(root, text="Temperature:", font=("Arial", 14), bg="#fff5e6", anchor="w").pack(fill="x", padx=20)
-    Label(root, textvariable=temperature, font=("Arial", 20, "bold"), bg="#f8e1e1", fg="#800020", anchor="center").pack(fill="x", padx=20, pady=5)
+    Label(root, textvariable=temperature, font=("Arial", 20, "bold"), bg="#f8e1e1", fg="#800020", anchor="center").pack(
+        fill="x", padx=20, pady=5
+    )
 
     # Estado de luz
     Label(root, text="Light Status:", font=("Arial", 14), bg="#fff5e6", anchor="w").pack(fill="x", padx=20)
-    Label(root, textvariable=light, font=("Arial", 16, "bold"), bg="#fce5cd", fg="#ff4500", anchor="center").pack(fill="x", padx=20, pady=5)
+    Label(root, textvariable=light, font=("Arial", 16, "bold"), bg="#fce5cd", fg="#ff4500", anchor="center").pack(
+        fill="x", padx=20, pady=5
+    )
 
     # Selección del joystick
     Label(root, text="Joystick Selection:", font=("Arial", 14), bg="#fff5e6", anchor="w").pack(fill="x", padx=20)
-    Label(root, textvariable=joystick_action, font=("Arial", 16, "bold"), bg="#e6e6fa", fg="#800080", anchor="center").pack(fill="x", padx=20, pady=5)
+    Label(
+        root, textvariable=joystick_action, font=("Arial", 16, "bold"), bg="#e6e6fa", fg="#800080", anchor="center"
+    ).pack(fill="x", padx=20, pady=5)
 
     # Estado MQTT
     Label(root, text="MQTT Status:", font=("Arial", 14), bg="#fff5e6", anchor="w").pack(fill="x", padx=20)
-    Label(root, textvariable=mqtt_status, font=("Arial", 16, "bold"), bg="#fafad2", fg="#ff8c00", anchor="center").pack(fill="x", padx=20, pady=5)
+    Label(root, textvariable=mqtt_status, font=("Arial", 16, "bold"), bg="#fafad2", fg="#ff8c00", anchor="center").pack(
+        fill="x", padx=20, pady=5
+    )
 
     root.mainloop()
+
 
 # Función para ejecutar la interfaz gráfica en un hilo por separado y que así no bloquee el resto del código
 def start_interface_thread():
     import threading
+
     threading.Thread(target=create_interface, daemon=True).start()
+
 
 # MQTT Callbacks
 def on_connect(client, userdata, flags, rc):
@@ -132,17 +150,21 @@ def on_connect(client, userdata, flags, rc):
         mqtt_connected = False
         mqtt_status.set("Disconnected")
 
+
 def on_disconnect(client, userdata, rc):
     global mqtt_connected
     print("Desconectado del broker MQTT.")
     mqtt_connected = False
 
+
 def on_publish(client, userdata, mid):
     print(f"Mensaje publicado exitosamente. ID del mensaje: {mid}")
+
 
 mqtt_client.on_connect = on_connect
 mqtt_client.on_disconnect = on_disconnect
 mqtt_client.on_publish = on_publish
+
 
 # Reconexión periódica al broker MQTT
 def mqtt_connect_with_retry():
@@ -157,6 +179,7 @@ def mqtt_connect_with_retry():
             print(f"Error al conectar al broker MQTT: {e}")
             time.sleep(5)  # Reintentar tras un breve retraso
 
+
 # Métodos para controlar el Arduino vía MQTT
 def send_to_arduino(message):
     if mqtt_connected:
@@ -168,13 +191,16 @@ def send_to_arduino(message):
     else:
         print("No conectado al broker MQTT. No se pudo enviar el mensaje.")
 
+
 # Métodos para obtener valores del Sense HAT
 def get_sensor_temperature():
     return round(sense.get_temperature(), 2)
 
+
 def get_sensor_light():
     humidity = sense.get_humidity()
     return "Low Light" if humidity < 50 else "High Light"
+
 
 def get_sensor_joystick():
     for event in sense.stick.get_events():
@@ -185,6 +211,7 @@ def get_sensor_joystick():
                 return "Noise Detected"
     return "No Selection"
 
+
 # MATRICES DE NOTAS MUSICALES
 def get_note_matrix(note, intensity=1):
     black = [0, 0, 0]
@@ -193,36 +220,204 @@ def get_note_matrix(note, intensity=1):
     white = [int(255 * intensity), int(255 * intensity), int(255 * intensity)]
 
     corchea = [
-        black, black, black, red, red, black, black, black,
-        black, black, black, red, red, black, black, black,
-        black, black, red, red, red, red, black, black,
-        black, black, red, red, red, red, black, black,
-        black, black, black, red, red, black, black, black,
-        black, black, black, red, red, black, black, black,
-        black, black, black, red, red, black, black, black,
-        black, black, black, black, black, black, black, black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        red,
+        red,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
     ]
 
     semicorchea = [
-        black, black, pink, pink, black, black, black, black,
-        black, black, pink, pink, black, black, black, black,
-        black, pink, pink, pink, pink, black, black, black,
-        black, pink, pink, pink, pink, black, black, black,
-        black, black, pink, pink, pink, pink, black, black,
-        black, black, pink, pink, pink, pink, black, black,
-        black, black, black, pink, pink, black, black, black,
-        black, black, black, black, black, black, black, black,
+        black,
+        black,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        black,
+        pink,
+        pink,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        pink,
+        pink,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        black,
+        pink,
+        pink,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        pink,
+        pink,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        black,
+        pink,
+        pink,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
     ]
 
     blanca = [
-        black, black, white, white, white, white, black, black,
-        black, white, white, black, black, white, white, black,
-        black, white, black, black, black, black, white, black,
-        black, white, black, black, black, black, white, black,
-        black, white, black, black, black, black, white, black,
-        black, white, white, black, black, white, white, black,
-        black, black, white, white, white, white, black, black,
-        black, black, black, black, black, black, black, black,
+        black,
+        black,
+        white,
+        white,
+        white,
+        white,
+        black,
+        black,
+        black,
+        white,
+        white,
+        black,
+        black,
+        white,
+        white,
+        black,
+        black,
+        white,
+        black,
+        black,
+        black,
+        black,
+        white,
+        black,
+        black,
+        white,
+        black,
+        black,
+        black,
+        black,
+        white,
+        black,
+        black,
+        white,
+        black,
+        black,
+        black,
+        black,
+        white,
+        black,
+        black,
+        white,
+        white,
+        black,
+        black,
+        white,
+        white,
+        black,
+        black,
+        black,
+        white,
+        white,
+        white,
+        white,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
+        black,
     ]
 
     if note == "Red Wine":
@@ -234,10 +429,12 @@ def get_note_matrix(note, intensity=1):
     else:
         return [black] * 64
 
+
 # DISPLAY NOTES ON LED MATRIX
 def display_note(note, intensity=1):
     matrix = get_note_matrix(note, intensity)
     sense.set_pixels(matrix)
+
 
 # HANDLE INCOMING COMMANDS FROM AZURE
 def handle_command(client):
@@ -256,14 +453,15 @@ def handle_command(client):
 
         elif command == "Increase Brightness":
             print("Command received: Increase Brightness")
-            display_note(sensor_data.get('joystick_action', 'No Selection'), intensity=2)
+            display_note(sensor_data.get("joystick_action", "No Selection"), intensity=2)
 
         elif command == "Decrease Brightness":
             print("Command received: Decrease Brightness")
-            display_note(sensor_data.get('joystick_action', 'No Selection'), intensity=0.5)
+            display_note(sensor_data.get("joystick_action", "No Selection"), intensity=0.5)
 
         elif command == "Temperature Low":
             print("Command received: Temperature Low - To be implemented.")
+
 
 # MAIN SCRIPT
 def iothub_client_telemetry_sample_run():
@@ -285,21 +483,23 @@ def iothub_client_telemetry_sample_run():
 
             if joystick in WINE_SELECTION.values():
                 display_note(joystick)
-              
+
             temperature.set(f"{temp}°C")
             light.set(light_status)
             joystick_action.set(joystick)
 
-            sensor_data.update({
-                'temperature': temp,
-                'light': light_status,
-                'joystick_action': joystick,
-            })
+            sensor_data.update(
+                {
+                    "temperature": temp,
+                    "light": light_status,
+                    "joystick_action": joystick,
+                }
+            )
 
             json_sensor_data = json.dumps(sensor_data)
             azure_iot_message = Message(json_sensor_data)
-            azure_iot_message.content_encoding = 'utf-8'
-            azure_iot_message.content_type = 'application/json'
+            azure_iot_message.content_encoding = "utf-8"
+            azure_iot_message.content_type = "application/json"
             client.send_message(azure_iot_message)
             print(f"Message sent: {azure_iot_message}")
 
@@ -314,9 +514,10 @@ def iothub_client_telemetry_sample_run():
         sense.clear()
         root.destroy()
 
-if __name__ == '__main__':
-   # Iniciar la interfaz gráfica
+
+if __name__ == "__main__":
+    # Iniciar la interfaz gráfica
     start_interface_thread()
-   
-   # Fujo del programa
+
+    # Fujo del programa
     iothub_client_telemetry_sample_run()
