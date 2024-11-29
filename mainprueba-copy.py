@@ -133,7 +133,6 @@ def get_sensor_joystick():
                 return "Noise Detected"
     return "No Selection"
 
-# MATRICES DE NOTAS MUSICALES
 # Función para generar una onda sinusoidal
 def generate_continuous_wave_matrix(amplitude, frequency, phase_shift, color):
     matrix = [[black for _ in range(8)] for _ in range(8)]
@@ -204,6 +203,13 @@ def iothub_client_telemetry_sample_run():
     try:
         current_thread = None  # Control del hilo actual
         stop_flag = [False]  # Señal para detener el hilo de animación
+
+       # Definición de colores
+        black = [0, 0, 0]
+        red = [255, 0, 0]  # Corchea - Red Wine
+        pink = [200, 85, 160]  # Semicorchea - Rosé Wine
+        white = [255, 255, 255]  # Blanca - White Wine
+        blue = [0, 0, 255]  # Línea horizontal azul
 
         client = IoTHubDeviceClient.create_from_connection_string(AUX_CONNECTION_STRING)
 
